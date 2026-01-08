@@ -1,0 +1,235 @@
+const express = require("express");
+const app = express();
+const session = require("express-session");
+const rateLimit = require("express-rate-limit");
+const morgan = require("morgan");
+const helmet = require("helmet");
+const cors = require("cors");
+
+//routes api
+const authApi = require("./src/routes/auth.routes");
+
+app.use(express.urlencoded({ extended: true, limit: "10mb" }));
+app.use(express.json({ limit: "10mb" }));
+
+// CORS harus SEBELUM helmet untuk Firebase
+app.use(cors({
+  origin: ["http://localhost:5173", "http://localhost:3000"],
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"]
+}));
+
+// Helmet dengan konfigurasi yang compatible dengan Firebase Auth
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'", "'unsafe-inline'", "https://apis.google.com"],
+      styleSrc: ["'self'", "'unsafe-inline'"],
+      imgSrc: ["'self'", "data:", "https:"],
+      connectSrc: ["'self'", "https://identitytoolkit.googleapis.com", "https://securetoken.googleapis.com"],
+      frameSrc: ["'self'", "https://tugasakhir-7676b.firebaseapp.com", "https://*.firebaseapp.com"],
+      fontSrc: ["'self'", "data:"],
+    },
+  },
+  // PENTING: Nonaktifkan COOP untuk Firebase popup
+  crossOriginOpenerPolicy: false,
+  crossOriginEmbedderPolicy: false,
+}));
+
+app.use(
+  session({
+    secret: process.env.SESSION_SECRET || "your-session-secret",
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      secure: process.env.NODE_ENV === "production",
+      httpOnly: true,
+      maxAge: 24 * 60 * 60 * 1000 // 24 hours
+    }
+  })
+);
+
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, 
+  max: 100,
+  message: {
+    code: 429,
+    success: false,
+    message: "Terlalu banyak permintaan, silakan coba lagi nanti.",
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+app.use(limiter);
+
+if (process.env.NODE_ENV === "development") {
+  app.use(morgan("dev")); 
+} else {
+  app.use(morgan("combined"));
+}
+
+app.use((req, res, next) => {
+  const startTime = Date.now();
+  
+  res.on("finish", () => {
+    const duration = Date.now() - startTime;
+    const logData = {
+      timestamp: new Date().toISOString(),
+      method: req.method,
+      url: req.originalUrl,
+      status: res.statusCode,
+      duration: `${duration}ms`,
+      ip: req.ip || req.connection.remoteAddress,
+      userAgent: req.get("user-agent") || "unknown",
+    };
+
+    const statusColor = res.statusCode >= 500 ? "🔴" : 
+                       res.statusCode >= 400 ? "🟡" : 
+                       res.statusCode >= 300 ? "🔵" : "🟢";
+
+    console.log(
+      `${statusColor} [${logData.timestamp}] ${logData.method} ${logData.url} - ${logData.status} - ${logData.duration}`
+    );
+
+    if (process.env.NODE_ENV === "development" && req.body && Object.keys(req.body).length > 0) {
+      const sanitizedBody = { ...req.body };
+      ["password", "token", "secret"].forEach(field => {
+        if (sanitizedBody[field]) sanitizedBody[field] = "***HIDDEN***";
+      });
+      console.log("📦 Body:", JSON.stringify(sanitizedBody, null, 2));
+    }
+  });
+
+  next();
+});
+
+// Routes
+app.get("/", (req, res) => res.json({ 
+  success: true, 
+  message: "Hello World!",
+  timestamp: new Date().toISOString()
+}));
+
+app.use("/api/auth", authApi);
+
+// 404 handler
+app.use((req, res, next) => {
+  console.log(`⚠️ 404 Not Found: ${req.method} ${req.originalUrl}`);
+  res.status(404).json({
+    success: false,
+    message: `Route ${req.method} ${req.originalUrl} not found`,
+    timestamp: new Date().toISOString(),
+  });
+});
+
+// Enhanced error handling middleware
+app.use((err, req, res, next) => {
+  console.error("❌ Error occurred:", {
+    message: err.message,
+    stack: err.stack,
+    url: req.originalUrl,
+    method: req.method,
+    body: req.body,
+    params: req.params,
+    timestamp: new Date().toISOString(),
+  });
+
+  // Validation Error
+  if (err.name === "ValidationError") {
+    return res.status(400).json({
+      success: false,
+      message: "Validation Error",
+      errors: err.errors,
+      timestamp: new Date().toISOString(),
+    });
+  }
+
+  // JWT Errors
+  if (err.name === "JsonWebTokenError") {
+    return res.status(401).json({
+      success: false,
+      message: "Invalid token",
+      timestamp: new Date().toISOString(),
+    });
+  }
+
+  if (err.name === "TokenExpiredError") {
+    return res.status(401).json({
+      success: false,
+      message: "Token expired",
+      timestamp: new Date().toISOString(),
+    });
+  }
+
+  // File upload errors
+  if (err.code === "LIMIT_FILE_SIZE") {
+    return res.status(413).json({
+      success: false,
+      message: "File too large",
+      timestamp: new Date().toISOString(),
+    });
+  }
+
+  // Database errors
+  if (err.code === "ER_DUP_ENTRY") {
+    return res.status(409).json({
+      success: false,
+      message: "Duplicate entry found",
+      timestamp: new Date().toISOString(),
+    });
+  }
+
+  if (err.code === "ER_NO_SUCH_TABLE") {
+    return res.status(500).json({
+      success: false,
+      message: "Database table not found",
+      timestamp: new Date().toISOString(),
+    });
+  }
+
+  // Syntax Error (bad JSON)
+  if (err instanceof SyntaxError && err.status === 400 && "body" in err) {
+    return res.status(400).json({
+      success: false,
+      message: "Invalid JSON format",
+      timestamp: new Date().toISOString(),
+    });
+  }
+
+  // Default error response
+  const isDevelopment = process.env.NODE_ENV === "development";
+
+  res.status(err.statusCode || 500).json({
+    success: false,
+    message: err.message || "Internal server error",
+    ...(isDevelopment && {
+      stack: err.stack,
+      details: err.details || "No additional details",
+    }),
+    timestamp: new Date().toISOString(),
+  });
+});
+
+// Global exception handlers
+process.on("uncaughtException", (err) => {
+  console.error("💥 Uncaught Exception:", {
+    message: err.message,
+    stack: err.stack,
+    timestamp: new Date().toISOString()
+  });
+  process.exit(1);
+});
+
+process.on("unhandledRejection", (reason, promise) => {
+  console.error("💥 Unhandled Rejection:", {
+    promise: promise,
+    reason: reason,
+    timestamp: new Date().toISOString()
+  });
+  process.exit(1);
+});
+
+module.exports = app;

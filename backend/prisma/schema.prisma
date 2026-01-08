@@ -1,0 +1,128 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url = env("DATABASE_URL")
+}
+
+model User {
+  id            String    @id @default(auto()) @map("_id") @db.ObjectId
+  email         String    @unique
+  name          String
+  avatar        String?
+  provider      String    @default("google")
+  providerId    String?   @unique  
+  
+  // Settings
+  notifications Boolean   @default(true)
+  language      String    @default("id")
+  
+  // Metadata
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  lastLoginAt   DateTime?
+  
+  // Soft delete (OPTIONAL - recommend adding)
+  isDeleted     Boolean   @default(false)
+  deletedAt     DateTime?
+  
+  // Relations
+  analyses      Analysis[]
+  
+  @@map("users")
+}
+
+
+model Analysis {
+  id               String    @id @default(auto()) @map("_id") @db.ObjectId
+  userId           String    @db.ObjectId
+  
+  // Image Information
+  imageUrl         String
+  imageKey         String?   // ← Add for cloud storage reference
+  imageSize        Int?
+  
+  // Detection Results
+  detectedDisease  String
+  diseaseId        String?   @db.ObjectId
+  confidence       Float
+  status           String    @default("completed") 
+  
+  // Additional Data
+  predictions      Json      // [{disease: "name", confidence: 95}]
+  
+  // Context
+  notes            String?
+  
+  // Metadata
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt  
+  
+  // Soft delete (OPTIONAL)
+  isDeleted        Boolean   @default(false)
+  
+  // Relations
+  user             User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  disease          Disease?  @relation(fields: [diseaseId], references: [id])
+  
+  @@index([userId])
+  @@index([diseaseId])
+  @@index([createdAt])
+  @@index([status]) 
+  @@map("analyses")
+}
+
+model Disease {
+  id               String    @id @default(auto()) @map("_id") @db.ObjectId
+  name             String    
+  
+  // Description
+  description      String
+  category         String    // Jamur, Bakteri, Virus
+  severity         String    // Ringan, Sedang, Berat
+  
+  // Symptoms
+  symptoms         String[]
+  
+  // Management
+  prevention       String[]
+  treatment        String[]
+  
+  // Images
+  imageUrl         String?
+  
+  // Metadata
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  isActive         Boolean   @default(true)  // ← Add this
+  
+  // Relations
+  analyses         Analysis[]
+  
+  @@index([name])
+  @@index([category])
+  @@map("diseases")
+}
+
+model Statistic {
+  id              String   @id @default(auto()) @map("_id") @db.ObjectId
+  diseaseName     String
+  diseaseId       String?  @db.ObjectId  
+  
+  // Time Period
+  year            Int
+  month           Int
+  
+  // Count
+  detectionCount  Int      @default(0)
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  @@unique([diseaseName, year, month])
+  @@index([year, month])
+  @@index([diseaseId])  // ← Add this
+  @@map("statistics")
+}

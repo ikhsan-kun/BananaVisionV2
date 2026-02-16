@@ -31,39 +31,39 @@ export default function RegisterPage({ handleLogin, setCurrentPage }) {
             className="space-y-4"
           >
             <div>
-              <label className="text-sm text-gray-600">Nama</label>
+              <label className="text-sm font-medium text-gray-700">Nama</label>
               <input
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 type="text"
                 required
-                className="mt-1 w-full px-4 py-3 rounded-xl border-2 border-gray-100 focus:border-green-500 outline-none"
+                className="input-modern mt-1.5"
                 placeholder="Nama lengkap"
                 aria-label="Nama"
               />
             </div>
 
             <div>
-              <label className="text-sm text-gray-600">Email</label>
+              <label className="text-sm font-medium text-gray-700">Email</label>
               <input
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 type="email"
                 required
-                className="mt-1 w-full px-4 py-3 rounded-xl border-2 border-gray-100 focus:border-green-500 outline-none"
+                className="input-modern mt-1.5"
                 placeholder="you@example.com"
                 aria-label="Email"
               />
             </div>
 
             <div>
-              <label className="text-sm text-gray-600">Password</label>
+              <label className="text-sm font-medium text-gray-700">Password</label>
               <input
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 type="password"
                 required
-                className="mt-1 w-full px-4 py-3 rounded-xl border-2 border-gray-100 focus:border-green-500 outline-none"
+                className="input-modern mt-1.5"
                 placeholder="••••••••"
                 aria-label="Password"
               />
@@ -71,7 +71,7 @@ export default function RegisterPage({ handleLogin, setCurrentPage }) {
 
             <button
               type="submit"
-              className="w-full bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-xl px-6 py-3 font-semibold hover:from-green-600 hover:to-emerald-700 transition shadow-lg"
+              className="btn-primary w-full"
             >
               Daftar
             </button>
@@ -88,7 +88,7 @@ export default function RegisterPage({ handleLogin, setCurrentPage }) {
 
           <button
             onClick={() => setCurrentPage && setCurrentPage("login")}
-            className="w-full bg-white border-2 border-gray-200 rounded-xl px-6 py-4 flex items-center justify-center gap-3 hover:bg-gray-50 transition-all font-semibold text-gray-700 shadow-md hover:shadow-lg"
+            className="btn-ghost w-full"
           >
             Sudah punya akun? Masuk
           </button>

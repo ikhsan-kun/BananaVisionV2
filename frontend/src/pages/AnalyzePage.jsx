@@ -8,6 +8,8 @@ import {
   AlertCircle,
   ChevronRight,
 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { getToken } from "../utils/token";
 
 export default function AnalyzePage({
   selectedImage,
@@ -22,6 +24,14 @@ export default function AnalyzePage({
   const cameraInputRef = useRef(null);
   const [dragOver, setDragOver] = useState(false);
   const [localProgress, setLocalProgress] = useState(0);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const token = getToken();
+    if (!token) {
+      navigate("/login");
+    }
+  }, []);
 
   useEffect(() => {
     let id;
@@ -73,11 +83,10 @@ export default function AnalyzePage({
                 onDrop={onDrop}
                 onDragOver={onDragOver}
                 onDragLeave={() => setDragOver(false)}
-                className={`border-2 border-dashed rounded-2xl p-10 text-center transition-all ${
-                  dragOver
-                    ? "border-green-400 bg-green-50/40"
-                    : "border-gray-300"
-                }`}
+                className={`border-2 border-dashed rounded-2xl p-10 text-center transition-all ${dragOver
+                  ? "border-green-400 bg-green-50/40"
+                  : "border-gray-300"
+                  }`}
                 role="button"
                 tabIndex={0}
                 onKeyDown={(e) => {
@@ -103,7 +112,7 @@ export default function AnalyzePage({
                   />
                   <button
                     onClick={() => fileInputRef.current?.click()}
-                    className="bg-gradient-to-r from-green-500 to-emerald-600 text-white px-6 py-3 rounded-xl font-semibold hover:from-green-600 hover:to-emerald-700 transition-all shadow"
+                    className="btn-primary"
                   >
                     Pilih File
                   </button>
@@ -118,12 +127,10 @@ export default function AnalyzePage({
                   />
                   <button
                     onClick={() => cameraInputRef.current?.click()}
-                    className="px-6 py-3 rounded-xl font-semibold border-2 border-gray-100 hover:bg-gray-50 transition"
+                    className="btn-secondary flex items-center gap-2 justify-center"
                   >
-                    <div className="flex items-center gap-2">
-                      <Camera className="w-5 h-5 text-gray-700" />
-                      Buka Kamera
-                    </div>
+                    <Camera className="w-5 h-5" />
+                    Buka Kamera
                   </button>
                 </div>
 
@@ -155,13 +162,13 @@ export default function AnalyzePage({
                 <div className="flex gap-3">
                   <button
                     onClick={handleAnalyze}
-                    className="flex-1 w-full bg-gradient-to-r from-green-500 to-emerald-600 text-white px-6 py-3 rounded-xl font-semibold text-lg hover:from-green-600 hover:to-emerald-700 transition-all shadow transform hover:-translate-y-0.5"
+                    className="btn-primary flex-1 text-lg"
                   >
                     Analisis Sekarang
                   </button>
                   <button
                     onClick={() => setSelectedImage(null)}
-                    className="w-40 px-6 py-3 rounded-xl font-semibold border-2 border-gray-100 hover:bg-gray-50 transition"
+                    className="btn-secondary w-40"
                   >
                     Pilih Ulang
                   </button>
@@ -189,23 +196,21 @@ export default function AnalyzePage({
 
               {result && (
                 <div
-                  className={`rounded-2xl p-6 ${
-                    result.severity === "healthy"
-                      ? "bg-green-50 border-2 border-green-200"
-                      : result.severity === "warning"
+                  className={`rounded-2xl p-6 ${result.severity === "healthy"
+                    ? "bg-green-50 border-2 border-green-200"
+                    : result.severity === "warning"
                       ? "bg-yellow-50 border-2 border-yellow-200"
                       : "bg-red-50 border-2 border-red-200"
-                  }`}
+                    }`}
                 >
                   <div className="flex items-start gap-4 mb-4">
                     <div
-                      className={`w-12 h-12 rounded-full flex items-center justify-center ${
-                        result.severity === "healthy"
-                          ? "bg-green-500"
-                          : result.severity === "warning"
+                      className={`w-12 h-12 rounded-full flex items-center justify-center ${result.severity === "healthy"
+                        ? "bg-green-500"
+                        : result.severity === "warning"
                           ? "bg-yellow-500"
                           : "bg-red-500"
-                      }`}
+                        }`}
                     >
                       {result.severity === "healthy" ? (
                         <CheckCircle className="w-6 h-6 text-white" />
@@ -223,13 +228,12 @@ export default function AnalyzePage({
                         </div>
                         <div className="flex-1 bg-gray-200 rounded-full h-3 overflow-hidden">
                           <div
-                            className={`h-full rounded-full ${
-                              result.severity === "healthy"
-                                ? "bg-green-500"
-                                : result.severity === "warning"
+                            className={`h-full rounded-full ${result.severity === "healthy"
+                              ? "bg-green-500"
+                              : result.severity === "warning"
                                 ? "bg-yellow-500"
                                 : "bg-red-500"
-                            }`}
+                              }`}
                             style={{ width: `${result.confidence}%` }}
                           />
                         </div>
@@ -255,7 +259,7 @@ export default function AnalyzePage({
                       <div className="flex gap-3">
                         <button
                           onClick={() => setCurrentPage("diseases")}
-                          className="text-green-600 font-semibold hover:text-green-700 flex items-center gap-1"
+                          className="text-green-600 font-semibold hover:text-green-700 flex items-center gap-1 transition-colors"
                         >
                           Pelajari Lebih Lanjut{" "}
                           <ChevronRight className="w-4 h-4" />
@@ -263,7 +267,7 @@ export default function AnalyzePage({
 
                         <button
                           onClick={() => setSelectedImage(null)}
-                          className="ml-auto bg-white text-gray-800 px-4 py-2 rounded-lg border-2 border-gray-200 hover:bg-gray-50"
+                          className="btn-secondary ml-auto"
                         >
                           Analisis Gambar Baru
                         </button>

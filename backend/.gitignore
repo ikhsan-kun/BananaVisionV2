@@ -3,4 +3,4 @@ node_modules
 .env
 archive
 
-backend/config/*.json
+config/*.json

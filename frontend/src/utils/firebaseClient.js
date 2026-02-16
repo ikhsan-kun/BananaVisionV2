@@ -1,11 +1,6 @@
+// firebaseClient.js
 import { initializeApp } from "firebase/app";
-import {
-  getAuth,
-  GoogleAuthProvider,
-  signInWithPopup,
-  signInWithRedirect,
-  getRedirectResult,
-} from "firebase/auth";
+import { getAuth, GoogleAuthProvider, signInWithPopup } from "firebase/auth";
 
 let authInstance = null;
 
@@ -13,78 +8,42 @@ function initFirebase() {
   if (authInstance) return authInstance;
 
   const config = {
-    apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
-    authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
-    projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
-    appId: import.meta.env.VITE_FIREBASE_APP_ID,
+    apiKey: "AIzaSyAyCc4krHtxlDzxjjFhNiGZ8IAz_O8f9F4",
+    authDomain: "tugasakhir-7676b.firebaseapp.com",
+    projectId: "tugasakhir-7676b",
+    appId: "1:586285371076:web:d80215fdaa6f4628e70391",
   };
-
-  if (!config.apiKey || !config.authDomain || !config.projectId) {
-    throw new Error(
-      "Firebase client configuration is missing. Set VITE_FIREBASE_* env vars."
-    );
-  }
 
   const app = initializeApp(config);
   authInstance = getAuth(app);
   return authInstance;
 }
 
-export async function signInWithGoogleAndGetIdToken() {
-  const auth = initFirebase();
-  const provider = new GoogleAuthProvider();
-
-  const result = await signInWithPopup(auth, provider);
-  const user = result.user;
-  if (!user) throw new Error("No user returned from Firebase sign-in");
-
-  const idToken = await user.getIdToken();
-  return idToken;
-}
-
-// New: try popup first; if popup is blocked, fallback to redirect flow
-export async function signInWithGooglePopupOrRedirect() {
+export async function loginWithGooglePopup() {
   const auth = initFirebase();
   const provider = new GoogleAuthProvider();
 
   try {
     const result = await signInWithPopup(auth, provider);
-    const user = result.user;
-    if (!user) throw new Error("No user returned from Firebase sign-in");
-    const idToken = await user.getIdToken();
-    return idToken;
-  } catch (err) {
-    // if popup is blocked, fall back to redirect-based flow
-    const code = err && (err.code || "");
-    const message = err && (err.message || "");
-    if (
-      code === "auth/popup-blocked" ||
-      code === "auth/cancelled-popup-request" ||
-      message.toLowerCase().includes("popup")
-    ) {
-      // Start redirect sign-in. The browser will navigate away; handle result on app init with handleRedirectResult().
-      await signInWithRedirect(auth, provider);
-      return null; // caller should wait for redirect result on next load
-    }
-    throw err;
-  }
-}
 
-export async function handleRedirectResult() {
-  const auth = initFirebase();
-  try {
-    const result = await getRedirectResult(auth);
-    if (!result || !result.user) return null;
+    if (!result || !result.user) {
+      throw new Error("Failed to get user from Google");
+    }
+
     const idToken = await result.user.getIdToken();
     return idToken;
   } catch (err) {
-    console.warn("Firebase redirect sign-in failed:", err);
-    return null;
+    if (err.code === "auth/popup-blocked") {
+      throw new Error(
+        "Popup login diblokir. Mohon izinkan popup di browser Anda."
+      );
+    } else if (err.code === "auth/cancelled-popup-request") {
+      throw new Error("Login dibatalkan");
+    } else if (
+      err.code === "auth/operation-not-supported-in-this-environment"
+    ) {
+      throw new Error("Popup login tidak didukung di environment ini");
+    }
+    throw new Error(err.message || "Google login gagal");
   }
 }
-
-export default {
-  signInWithGoogleAndGetIdToken,
-  signInWithGooglePopupOrRedirect,
-  handleRedirectResult,
-};

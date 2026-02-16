@@ -1,7 +1,7 @@
 import React from "react";
 import { LogOut, Edit, Bell, Shield, ChevronRight } from "lucide-react";
 
-export default function ProfilePage({ user, historyData, handleLogout }) {
+export default function ProfilePage({ user, historyData = [], handleLogout }) {
   return (
     <div className="min-h-screen bg-gray-50 p-4 md:p-8">
       <div className="max-w-4xl mx-auto">
@@ -18,14 +18,14 @@ export default function ProfilePage({ user, historyData, handleLogout }) {
           <div className="md:col-span-1 bg-white rounded-2xl p-6 shadow-lg">
             <div className="flex flex-col items-center text-center">
               <img
-                src={user?.avatar}
-                alt={user?.name}
+                src={user?.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.name || user?.email || 'User')}&background=10b981&color=fff`}
+                alt={user?.name || 'User'}
                 className="w-28 h-28 rounded-full shadow-md mb-4"
               />
               <div className="font-bold text-lg text-gray-800">
-                {user?.name}
+                {user?.name || 'User'}
               </div>
-              <div className="text-sm text-gray-500 mb-4">{user?.email}</div>
+              <div className="text-sm text-gray-500 mb-4">{user?.email || ''}</div>
 
               <button className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-gray-100 rounded-lg hover:shadow transition">
                 <Edit className="w-4 h-4 text-gray-700" />
@@ -107,35 +107,40 @@ export default function ProfilePage({ user, historyData, handleLogout }) {
             Riwayat Terbaru
           </h3>
           <div className="space-y-3">
-            {historyData.slice(0, 5).map((h) => (
-              <div
-                key={h.id}
-                className="flex items-center justify-between gap-4 p-3 rounded-lg hover:bg-gray-50 transition"
-              >
-                <div className="flex items-center gap-3">
-                  <img
-                    src={h.image}
-                    alt={h.disease}
-                    className="w-12 h-12 rounded-md object-cover"
-                  />
-                  <div>
-                    <div className="font-medium text-gray-800">{h.disease}</div>
-                    <div className="text-sm text-gray-500">{h.date}</div>
+            {historyData.length === 0 ? (
+              <div className="text-center py-8 text-gray-500">
+                <p>Belum ada riwayat analisis</p>
+              </div>
+            ) : (
+              historyData.slice(0, 5).map((h) => (
+                <div
+                  key={h.id}
+                  className="flex items-center justify-between gap-4 p-3 rounded-lg hover:bg-gray-50 transition"
+                >
+                  <div className="flex items-center gap-3">
+                    <img
+                      src={h.image}
+                      alt={h.disease}
+                      className="w-12 h-12 rounded-md object-cover"
+                    />
+                    <div>
+                      <div className="font-medium text-gray-800">{h.disease}</div>
+                      <div className="text-sm text-gray-500">{h.date}</div>
+                    </div>
+                  </div>
+                  <div
+                    className={`px-3 py-1 rounded-full text-sm font-semibold ${h.status === "healthy"
+                        ? "bg-green-100 text-green-700"
+                        : h.status === "warning"
+                          ? "bg-yellow-100 text-yellow-700"
+                          : "bg-red-100 text-red-700"
+                      }`}
+                  >
+                    {h.confidence}%
                   </div>
                 </div>
-                <div
-                  className={`px-3 py-1 rounded-full text-sm font-semibold ${
-                    h.status === "healthy"
-                      ? "bg-green-100 text-green-700"
-                      : h.status === "warning"
-                      ? "bg-yellow-100 text-yellow-700"
-                      : "bg-red-100 text-red-700"
-                  }`}
-                >
-                  {h.confidence}%
-                </div>
-              </div>
-            ))}
+              ))
+            )}
           </div>
         </div>
 

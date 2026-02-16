@@ -27,7 +27,7 @@ export default function Navigation({
     { icon: Activity, label: "Dashboard", page: "dashboard" },
     { icon: Camera, label: "Analisis", page: "analyze" },
     { icon: History, label: "Riwayat", page: "history" },
-    { icon: Book, label: "Penyakit", page: "diseases" },
+    { icon: Book, label: "Katalog", page: "diseases" },
     { icon: User, label: "Profil", page: "profile" },
   ];
 
@@ -41,7 +41,7 @@ export default function Navigation({
   return (
     <>
       {/* Mobile Header */}
-      <div className="md:hidden bg-white/90 backdrop-blur-sm border-b border-gray-200 px-4 py-3 flex items-center justify-between z-50 shadow-sm">
+      <div className="md:hidden fixed top-0 left-0 right-0 bg-white/90 backdrop-blur-sm border-b border-gray-200 px-4 py-3 flex items-center justify-between z-50 shadow-sm">
         <div
           className="flex items-center gap-2 cursor-pointer"
           onClick={() => handleNav("home")}
@@ -49,7 +49,11 @@ export default function Navigation({
           aria-label="Go to home"
         >
           <div className="">
-            <img src="/pisang.jpg" alt="pisang" className="w-10 h-10 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center" />
+            <img
+              src="/pisang.jpg"
+              alt="pisang"
+              className="w-10 h-10 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center"
+            />
           </div>
           <span className="font-bold text-lg text-gray-800">BananaAI</span>
         </div>
@@ -70,7 +74,7 @@ export default function Navigation({
       </div>
 
       {/* Desktop Top Navigation */}
-      <header className="hidden md:block top-0 bg-white/90 backdrop-blur-sm border-b border-gray-200 z-50">
+      <header className="hidden md:block fixed top-0 left-0 right-0 bg-white/90 backdrop-blur-sm border-b border-gray-200 z-50">
         <div className="max-w-7xl mx-auto px-6">
           <div className="flex items-center justify-between h-16">
             <div
@@ -78,13 +82,22 @@ export default function Navigation({
               onClick={() => handleNav("home")}
             >
               <div className="">
-                <img src="/pisang.jpg" alt="pisang" className="w-10 h-10 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center" />
+                <img
+                  src="/pisang.jpg"
+                  alt="pisang"
+                  className="w-10 h-10 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center"
+                />
               </div>
               <span className="font-bold text-xl text-gray-800">BananaAI</span>
             </div>
 
             <nav className="flex items-center gap-3">
-              {items.map((item) => (
+              {(user
+                ? items
+                : items.filter(
+                    (item) => item.page === "home" || item.page === "diseases",
+                  )
+              ).map((item) => (
                 <button
                   key={item.page}
                   onClick={() => handleNav(item.page)}
@@ -115,7 +128,10 @@ export default function Navigation({
                     className="flex items-center gap-2 px-3 py-1 rounded-full hover:bg-gray-50 transition"
                   >
                     <img
-                      src={user.avatar}
+                      src={
+                        user.avatar ||
+                        `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name || user.email)}&background=10b981&color=fff`
+                      }
                       alt={user.name}
                       className="w-8 h-8 rounded-full"
                     />
@@ -173,7 +189,11 @@ export default function Navigation({
               <div className="flex items-center justify-between mb-8">
                 <div className="flex items-center gap-2">
                   <div className="">
-                    <img src="/pisang.jpg" alt="pisang" className="w-10 h-10 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center" />
+                    <img
+                      src="/pisang.jpg"
+                      alt="pisang"
+                      className="w-10 h-10 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center"
+                    />
                   </div>
                   <span className="font-bold text-xl text-gray-800">
                     BananaAI
@@ -185,7 +205,13 @@ export default function Navigation({
               </div>
 
               <nav className="space-y-2">
-                {items.map((item) => (
+                {(user
+                  ? items
+                  : items.filter(
+                      (item) =>
+                        item.page === "home" || item.page === "diseases",
+                    )
+                ).map((item) => (
                   <button
                     key={item.page}
                     onClick={() => {

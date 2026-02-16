@@ -1,6 +1,7 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { Leaf } from "lucide-react";
-import { loginWithGoogle } from "../hooks/data";
+import { loginWithGoogle, login } from "../hooks/data";
+import LoadingSpinner from "../components/LoadingSpinner";
 
 export default function LoginPage({ handleLogin, setCurrentPage }) {
   const [email, setEmail] = useState("");
@@ -9,198 +10,348 @@ export default function LoginPage({ handleLogin, setCurrentPage }) {
   const [error, setError] = useState(null);
 
   const handleGoogleLogin = async () => {
+    setError(null);
+    setLoading(true);
+
     try {
-      setError(null);
-      setLoading(true);
+      if (loginWithGoogle) {
+        const result = await loginWithGoogle();
 
-      console.log("🔵 Starting Google login...");
-      
-      const data = await loginWithGoogle();
-      
-      console.log("✅ Login response received:", data);
+        const { user, token } = result;
 
-      // Handle different response structures
-      const userData = data.data?.user || data.user;
-      const token = data.data?.token || data.token;
+        if (!user || !token) {
+          throw new Error("Data pengguna atau token tidak valid");
+        }
 
-      if (!userData || !token) {
-        throw new Error("Invalid response from server");
+        if (handleLogin) {
+          handleLogin({ user, token });
+          console.log(
+            "✅ Login berhasil! Selamat datang, " + (user.name || user.email)
+          );
+        } else {
+          setError("Fungsi login tidak tersedia");
+          setLoading(false);
+        }
+      } else {
+        setError("Fungsi login Google belum tersedia");
+        setLoading(false);
       }
-
-      // Store token in localStorage
-      localStorage.setItem("token", token);
-      localStorage.setItem("user", JSON.stringify(userData));
-
-      console.log("✅ Login successful, token stored");
-
-      // Call parent handler
-      if (handleLogin) {
-        handleLogin({ user: userData, token });
-      }
-
-      // Optional: Show success message
-      alert("Login berhasil! Selamat datang, " + userData.name);
-      
     } catch (err) {
-      console.error("❌ Google login error:", err);
-      
-      // More specific error messages
-      let errorMessage = "Login gagal. Silakan coba lagi.";
-      
-      if (err.message.includes("popup")) {
-        errorMessage = "Popup diblokir oleh browser. Mohon izinkan popup untuk login.";
-      } else if (err.message.includes("network")) {
-        errorMessage = "Koneksi gagal. Periksa internet Anda.";
-      } else if (err.message) {
-        errorMessage = err.message;
-      }
-      
-      setError(errorMessage);
-    } finally {
+      console.error("❌ Login error details:", err);
+      setError(err.message || "Login gagal, silakan coba lagi");
       setLoading(false);
     }
   };
 
   const handleEmailLogin = async (e) => {
     e.preventDefault();
-    
-    // Validasi email dan password
+    setError(null);
+
     if (!email || !password) {
       setError("Email dan password harus diisi");
       return;
     }
 
-    // Implement your email login logic here
-    console.log("Email login not implemented yet");
-    setError("Login dengan email belum tersedia");
+    // Simple email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      setError("Format email tidak valid");
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const result = await login(email, password);
+
+      const { user, token } = result;
+
+      if (!user || !token) {
+        throw new Error("Data pengguna atau token tidak valid");
+      }
+
+      if (handleLogin) {
+        handleLogin({ user, token });
+        console.log(
+          "✅ Login berhasil! Selamat datang, " + (user.name || user.email)
+        );
+      } else {
+        setError("Fungsi login tidak tersedia");
+        setLoading(false);
+      }
+    } catch (err) {
+      console.error("❌ Email login error:", err);
+      setError(err.message || "Login gagal, silakan coba lagi");
+      setLoading(false);
+    }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-50 flex items-center justify-center px-4">
-      <div className="max-w-md w-full">
-        <div className="bg-white rounded-3xl shadow-2xl p-8 md:p-12">
-          <div className="text-center mb-8">
-            <div className="w-20 h-20 bg-gradient-to-br from-green-500 to-emerald-600 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-lg">
-              <Leaf className="w-10 h-10 text-white" />
-            </div>
-            <h2 className="text-3xl font-bold text-gray-800 mb-2">
-              Selamat Datang
-            </h2>
-            <p className="text-gray-600">
-              Login untuk mulai menggunakan sistem deteksi
-            </p>
+    <div className="relative flex min-h-screen w-full flex-col overflow-hidden bg-gray-50">
+      {/* Navbar */}
+      <header className="absolute top-0 left-0 w-full z-20 px-6 py-4 lg:px-10">
+        <div className="flex items-center gap-3">
+          <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-green-100 text-green-700">
+            <Leaf className="w-6 h-6" />
           </div>
+          <span className="text-xl font-bold tracking-tight text-gray-900">
+            BananaVision
+          </span>
+        </div>
+      </header>
 
-          <button
-            onClick={handleGoogleLogin}
-            className="w-full bg-white border-2 border-gray-200 rounded-xl px-6 py-4 flex items-center justify-center gap-3 hover:bg-gray-50 transition-all font-semibold text-gray-700 shadow-md hover:shadow-lg mb-4 disabled:opacity-50 disabled:cursor-not-allowed"
-            aria-label="Login dengan Google"
-            disabled={loading}
-          >
-            {!loading && (
-              <svg className="w-6 h-6" viewBox="0 0 24 24" aria-hidden="true">
-                <path
-                  fill="#4285F4"
-                  d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-                />
-                <path
-                  fill="#34A853"
-                  d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-                />
-                <path
-                  fill="#FBBC05"
-                  d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
-                />
-                <path
-                  fill="#EA4335"
-                  d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
-                />
-              </svg>
-            )}
-            {loading ? (
-              <span className="flex items-center gap-2">
-                <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"/>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
-                </svg>
-                Memproses...
-              </span>
-            ) : (
-              "Login dengan Google"
-            )}
-          </button>
-
-          {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm mb-4">
-              {error}
-            </div>
-          )}
-
-          <div className="relative my-4">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-gray-200"></div>
-            </div>
-            <div className="relative flex justify-center text-sm">
-              <span className="px-4 bg-white text-gray-500">
-                atau masuk dengan email
-              </span>
-            </div>
-          </div>
-
-          <form onSubmit={handleEmailLogin} className="space-y-4">
-            <div>
-              <label className="text-sm text-gray-600">Email</label>
-              <input
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                type="email"
-                className="mt-1 w-full px-4 py-3 rounded-xl border-2 border-gray-100 focus:border-green-500 outline-none"
-                placeholder="you@example.com"
-                aria-label="Email"
-              />
+      {/* Main Content: Split Layout */}
+      <main className="flex flex-1 flex-col lg:flex-row min-h-screen">
+        {/* Left Side: Login Form */}
+        <div className="flex flex-1 flex-col items-center justify-center bg-white px-6 py-20 lg:px-20 z-10 relative">
+          <div className="w-full max-w-[420px] flex flex-col gap-8">
+            {/* Welcome Text */}
+            <div className="flex flex-col gap-2">
+              <h1 className="text-4xl font-bold tracking-tight text-gray-900 lg:text-5xl">
+                Welcome back
+              </h1>
+              <p className="text-gray-500 text-lg">
+                Login to access your dashboard and analysis tools.
+              </p>
             </div>
 
-            <div>
-              <label className="text-sm text-gray-600">Password</label>
-              <input
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                type="password"
-                className="mt-1 w-full px-4 py-3 rounded-xl border-2 border-gray-100 focus:border-green-500 outline-none"
-                placeholder="••••••••"
-                aria-label="Password"
-              />
-            </div>
-
-            <div className="flex items-center justify-between text-sm">
-              <label className="flex items-center gap-2 text-gray-600">
-                <input type="checkbox" className="form-checkbox" /> Ingat saya
-              </label>
+            {/* Login Actions */}
+            <div className="flex flex-col gap-4">
               <button
-                type="button"
+                onClick={handleGoogleLogin}
+                disabled={loading}
+                className="group flex w-full items-center justify-center gap-3 rounded-xl border border-gray-200 bg-white px-6 py-4 text-base font-medium text-gray-700 transition-all hover:bg-gray-50 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {!loading && (
+                  <svg
+                    aria-hidden="true"
+                    className="h-5 w-5"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+                      fill="#4285F4"
+                    ></path>
+                    <path
+                      d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                      fill="#34A853"
+                    ></path>
+                    <path
+                      d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
+                      fill="#FBBC05"
+                    ></path>
+                    <path
+                      d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+                      fill="#EA4335"
+                    ></path>
+                  </svg>
+                )}
+                {loading ? (
+                  <span className="flex items-center gap-2">
+                    <LoadingSpinner size="sm" color="gray" />
+                    Memproses...
+                  </span>
+                ) : (
+                  "Sign in with Google"
+                )}
+              </button>
+
+              {error && (
+                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
+                  {error}
+                </div>
+              )}
+
+              <div className="relative flex items-center py-2">
+                <div className="grow border-t border-gray-200"></div>
+                <span className="mx-4 shrink-0 text-sm text-gray-400">
+                  Or continue with email
+                </span>
+                <div className="grow border-t border-gray-200"></div>
+              </div>
+
+              <div className="flex flex-col gap-4">
+                <div className="flex flex-col gap-1.5">
+                  <label
+                    className="text-sm font-medium text-gray-700"
+                    htmlFor="email"
+                  >
+                    Email address
+                  </label>
+                  <input
+                    className="input-modern"
+                    id="email"
+                    placeholder="researcher@bananavision.com"
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    disabled={loading}
+                  />
+                </div>
+
+                <div className="flex flex-col gap-1.5">
+                  <div className="flex items-center justify-between">
+                    <label
+                      className="text-sm font-medium text-gray-700"
+                      htmlFor="password"
+                    >
+                      Password
+                    </label>
+                    <button
+                      onClick={(e) => {
+                        e.preventDefault();
+                        alert("Fitur reset password akan segera tersedia");
+                      }}
+                      className="text-sm font-medium text-green-600 hover:text-green-700 transition-colors"
+                    >
+                      Forgot password?
+                    </button>
+                  </div>
+                  <input
+                    className="input-modern"
+                    id="password"
+                    placeholder="••••••••"
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    disabled={loading}
+                  />
+                </div>
+
+                <button
+                  onClick={handleEmailLogin}
+                  className="btn-primary mt-2 flex items-center justify-center gap-2"
+                  disabled={loading}
+                >
+                  {loading ? (
+                    <>
+                      <LoadingSpinner size="sm" color="white" />
+                      <span>Signing in...</span>
+                    </>
+                  ) : (
+                    "Sign In"
+                  )}
+                </button>
+              </div>
+            </div>
+
+            {/* Footer Links */}
+            <p className="text-center text-sm text-gray-500">
+              Don't have an account?{" "}
+              <button
                 onClick={() =>
                   setCurrentPage ? setCurrentPage("register") : null
                 }
-                className="text-green-600 font-semibold hover:text-green-700"
+                className="font-bold text-green-600 hover:text-green-700"
               >
-                Belum punya akun?
+                Sign up for free
               </button>
+            </p>
+          </div>
+
+          {/* Simple Footer */}
+          <div className="absolute bottom-6 w-full text-center">
+            <div className="flex justify-center gap-6 text-xs text-gray-400">
+              <button className="hover:text-gray-600">Privacy Policy</button>
+              <button className="hover:text-gray-600">Terms of Service</button>
+            </div>
+          </div>
+        </div>
+
+        {/* Right Side: Visual Hero (Desktop only) */}
+        <div className="hidden lg:relative lg:flex lg:flex-1 lg:items-center lg:justify-center overflow-hidden bg-gray-900">
+          {/* Background Image with Overlay */}
+          <div className="absolute inset-0 z-0">
+            <img
+              alt="Close up of vibrant green banana leaves"
+              className="h-full w-full object-cover opacity-40"
+              src="https://images.unsplash.com/photo-1523348837708-15d4a09cfac2?w=1200&h=1200&fit=crop"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-gray-900 via-gray-900/80 to-transparent"></div>
+          </div>
+
+          {/* Abstract Pattern */}
+          <div
+            className="absolute inset-0 z-0"
+            style={{
+              backgroundImage:
+                "radial-gradient(#10b981 0.5px, transparent 0.5px), radial-gradient(#10b981 0.5px, #111827 0.5px)",
+              backgroundSize: "20px 20px",
+              backgroundPosition: "0 0, 10px 10px",
+              opacity: 0.1,
+            }}
+          ></div>
+
+          {/* Floating Card Content */}
+          <div className="relative z-10 max-w-lg px-10 text-center">
+            <div className="mb-8 inline-flex items-center justify-center rounded-full bg-green-500/10 px-4 py-1.5 backdrop-blur-sm border border-green-500/20">
+              <span className="mr-2 text-sm text-green-400">✓</span>
+              <span className="text-sm font-medium text-green-400">
+                New Model v2.4 Available
+              </span>
             </div>
 
-            <button
-              type="submit"
-              className="w-full bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-xl px-6 py-3 font-semibold hover:from-green-600 hover:to-emerald-700 transition shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
-              disabled={loading}
-            >
-              Masuk
-            </button>
-          </form>
+            <h2 className="mb-6 text-4xl font-bold leading-tight tracking-tight text-white lg:text-5xl">
+              Detect. Diagnose. <br />
+              <span className="text-green-400">Deliver.</span>
+            </h2>
 
-          <p className="text-center text-sm text-gray-500 mt-6">
-            Dengan masuk, Anda menyetujui syarat dan ketentuan kami
-          </p>
+            <p className="text-lg leading-relaxed text-gray-300">
+              Harness the power of our advanced computer vision algorithms to
+              identify early signs of Sigatoka and Panama disease in real-time.
+            </p>
+
+            {/* Feature Grid */}
+            <div className="mt-12 grid grid-cols-2 gap-4 text-left">
+              <div className="rounded-xl bg-white/5 p-4 backdrop-blur-md border border-white/10 hover:border-green-500/50 transition-colors duration-300">
+                <div className="mb-3 flex w-10 h-10 items-center justify-center rounded-lg bg-green-500/20 text-green-400">
+                  <svg
+                    className="w-5 h-5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
+                  </svg>
+                </div>
+                <h3 className="text-base font-bold text-white">
+                  99.8% Accuracy
+                </h3>
+                <p className="text-sm text-gray-400 mt-1">
+                  Industry leading detection rates.
+                </p>
+              </div>
+
+              <div className="rounded-xl bg-white/5 p-4 backdrop-blur-md border border-white/10 hover:border-green-500/50 transition-colors duration-300">
+                <div className="mb-3 flex w-10 h-10 items-center justify-center rounded-lg bg-green-500/20 text-green-400">
+                  <svg
+                    className="w-5 h-5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z"
+                    />
+                  </svg>
+                </div>
+                <h3 className="text-base font-bold text-white">Cloud Sync</h3>
+                <p className="text-sm text-gray-400 mt-1">
+                  Real-time data across all devices.
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
-      </div>
+      </main>
     </div>
   );
 }

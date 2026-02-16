@@ -8,35 +8,62 @@ const cors = require("cors");
 
 //routes api
 const authApi = require("./src/routes/auth.routes");
+const analysisApi = require("./src/routes/analysis.routes");
+const diseaseApi = require("./src/routes/disease.routes");
 
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 app.use(express.json({ limit: "10mb" }));
 
 // CORS harus SEBELUM helmet untuk Firebase
-app.use(cors({
-  origin: ["http://localhost:5173", "http://localhost:3000"],
-  credentials: true,
-  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization"]
-}));
+app.use(
+  cors({
+    origin: [
+      "http://localhost:5173",
+      "http://localhost:5174",
+      "http://localhost:3000",
+    ],
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  }),
+);
 
 // Helmet dengan konfigurasi yang compatible dengan Firebase Auth
-app.use(helmet({
-  contentSecurityPolicy: {
-    directives: {
-      defaultSrc: ["'self'"],
-      scriptSrc: ["'self'", "'unsafe-inline'", "https://apis.google.com"],
-      styleSrc: ["'self'", "'unsafe-inline'"],
-      imgSrc: ["'self'", "data:", "https:"],
-      connectSrc: ["'self'", "https://identitytoolkit.googleapis.com", "https://securetoken.googleapis.com"],
-      frameSrc: ["'self'", "https://tugasakhir-7676b.firebaseapp.com", "https://*.firebaseapp.com"],
-      fontSrc: ["'self'", "data:"],
+app.use(
+  helmet({
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        scriptSrc: [
+          "'self'",
+          "'unsafe-inline'",
+          "https://apis.google.com",
+          "https://accounts.google.com",
+          "https://*.firebase.com",
+        ],
+        styleSrc: ["'self'", "'unsafe-inline'"],
+        imgSrc: ["'self'", "data:", "https:"],
+        connectSrc: [
+          "'self'",
+          "https://identitytoolkit.googleapis.com",
+          "https://securetoken.googleapis.com",
+          "https://accounts.google.com",
+          "https://*.firebaseapp.com",
+        ],
+        frameSrc: [
+          "'self'",
+          "https://accounts.google.com",
+          "https://tugasakhir-7676b.firebaseapp.com",
+          "https://*.firebaseapp.com",
+        ],
+        fontSrc: ["'self'", "data:"],
+      },
     },
-  },
-  // PENTING: Nonaktifkan COOP untuk Firebase popup
-  crossOriginOpenerPolicy: false,
-  crossOriginEmbedderPolicy: false,
-}));
+    crossOriginOpenerPolicy: { policy: "same-origin-allow-popups" },
+    crossOriginEmbedderPolicy: false,
+    crossOriginResourcePolicy: { policy: "cross-origin" },
+  }),
+);
 
 app.use(
   session({
@@ -46,13 +73,13 @@ app.use(
     cookie: {
       secure: process.env.NODE_ENV === "production",
       httpOnly: true,
-      maxAge: 24 * 60 * 60 * 1000 // 24 hours
-    }
-  })
+      maxAge: 24 * 60 * 60 * 1000, // 24 hours
+    },
+  }),
 );
 
 const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, 
+  windowMs: 15 * 60 * 1000,
   max: 100,
   message: {
     code: 429,
@@ -66,14 +93,14 @@ const limiter = rateLimit({
 app.use(limiter);
 
 if (process.env.NODE_ENV === "development") {
-  app.use(morgan("dev")); 
+  app.use(morgan("dev"));
 } else {
   app.use(morgan("combined"));
 }
 
 app.use((req, res, next) => {
   const startTime = Date.now();
-  
+
   res.on("finish", () => {
     const duration = Date.now() - startTime;
     const logData = {
@@ -86,17 +113,13 @@ app.use((req, res, next) => {
       userAgent: req.get("user-agent") || "unknown",
     };
 
-    const statusColor = res.statusCode >= 500 ? "🔴" : 
-                       res.statusCode >= 400 ? "🟡" : 
-                       res.statusCode >= 300 ? "🔵" : "🟢";
-
-    console.log(
-      `${statusColor} [${logData.timestamp}] ${logData.method} ${logData.url} - ${logData.status} - ${logData.duration}`
-    );
-
-    if (process.env.NODE_ENV === "development" && req.body && Object.keys(req.body).length > 0) {
+    if (
+      process.env.NODE_ENV === "development" &&
+      req.body &&
+      Object.keys(req.body).length > 0
+    ) {
       const sanitizedBody = { ...req.body };
-      ["password", "token", "secret"].forEach(field => {
+      ["password", "token", "secret"].forEach((field) => {
         if (sanitizedBody[field]) sanitizedBody[field] = "***HIDDEN***";
       });
       console.log("📦 Body:", JSON.stringify(sanitizedBody, null, 2));
@@ -107,13 +130,17 @@ app.use((req, res, next) => {
 });
 
 // Routes
-app.get("/", (req, res) => res.json({ 
-  success: true, 
-  message: "Hello World!",
-  timestamp: new Date().toISOString()
-}));
+app.get("/", (req, res) =>
+  res.json({
+    success: true,
+    message: "Hello World!",
+    timestamp: new Date().toISOString(),
+  }),
+);
 
 app.use("/api/auth", authApi);
+app.use("/api/analyses", analysisApi);
+app.use("/api/diseases", diseaseApi);
 
 // 404 handler
 app.use((req, res, next) => {
@@ -218,7 +245,7 @@ process.on("uncaughtException", (err) => {
   console.error("💥 Uncaught Exception:", {
     message: err.message,
     stack: err.stack,
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
   });
   process.exit(1);
 });
@@ -227,7 +254,7 @@ process.on("unhandledRejection", (reason, promise) => {
   console.error("💥 Unhandled Rejection:", {
     promise: promise,
     reason: reason,
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
   });
   process.exit(1);
 });

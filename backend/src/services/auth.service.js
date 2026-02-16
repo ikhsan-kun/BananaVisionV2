@@ -1,26 +1,26 @@
-const admin = require('../../config/firebase');
-const UserModel = require('../models/authModel');
-const { generateToken } = require('../utils/jwt');
+const admin = require("../../config/firebase");
+const UserModel = require("../models/authModel");
+const { generateToken } = require("../utils/jwt");
+const respone = require("../utils/response");
 
 class AuthService {
-
   static async verifyFirebaseToken(idToken) {
     try {
       const decodedToken = await admin.auth().verifyIdToken(idToken);
       return decodedToken;
     } catch (error) {
-      throw new Error('Invalid Firebase token');
+      throw new Error("Invalid Firebase token");
     }
   }
 
   static async loginWithGoogle(idToken) {
     try {
       const decodedToken = await this.verifyFirebaseToken(idToken);
-      
+
       const { uid, email, name, picture } = decodedToken;
 
       if (!email) {
-        throw new Error('Email not found in token');
+        throw new Error("Email not found in token");
       }
 
       let user = await UserModel.findByProviderId(uid);
@@ -32,15 +32,14 @@ class AuthService {
       if (!user) {
         user = await UserModel.create({
           email,
-          name: name || email.split('@')[0],
+          name: name || email.split("@")[0],
           avatar: picture || null,
-          provider: 'google',
+          provider: "google",
           providerId: uid,
         });
       } else {
-
         await UserModel.updateLastLogin(user.id);
-        
+
         if (!user.providerId) {
           user = await UserModel.update(user.id, {
             providerId: uid,
@@ -65,9 +64,9 @@ class AuthService {
   static async getUserProfile(userId) {
     try {
       const user = await UserModel.findById(userId);
-      
+
       if (!user) {
-        throw new Error('User not found');
+        throw new Error("User not found");
       }
 
       return user;

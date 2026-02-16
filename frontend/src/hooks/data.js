@@ -1,124 +1,328 @@
-import { signInWithGoogleAndGetIdToken } from "../utils/firebaseClient";
+import { loginWithGooglePopup } from "../utils/firebaseClient";
 import BASE_URL from "../utils/config";
 
 export const API_ENDPOINTS = {
-  LOGIN: `${BASE_URL}/auth/google`,
-  GET_USER: `${BASE_URL}/auth/profile`,
-  UPDATE_USER: `${BASE_URL}/auth/profile`,
+  REGISTER: `${BASE_URL}/auth/register`,
+  LOGIN_EMAIL: `${BASE_URL}/auth/login`,
+  LOGIN_GOOGLE: `${BASE_URL}/auth/google`,
+  VERIFY_TOKEN: `${BASE_URL}/auth/verify`,
+  PROFILE: `${BASE_URL}/auth/profile`,
+  ANALYSES: `${BASE_URL}/analyses`,
+  ANALYZE_IMAGE: `${BASE_URL}/analyses/analyze`,
+  DASHBOARD_STATS: `${BASE_URL}/analyses/dashboard/stats`,
+  DASHBOARD_TRENDS: `${BASE_URL}/analyses/dashboard/trends`,
+  DISEASES: `${BASE_URL}/diseases`,
 };
 
-export const login = async () => {
-  const response = await fetch(API_ENDPOINTS.LOGIN, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-  });
-  if (!response.ok) {
-    throw new Error("Login failed");
+export const login = async (email, password) => {
+  try {
+    const response = await fetch(API_ENDPOINTS.LOGIN_EMAIL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ email, password }),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(
+        data.message || `Login gagal dengan status ${response.status}`,
+      );
+    }
+
+    // Extract user and token from response
+    const userData = data.data?.user || data.user;
+    const token = data.data?.token || data.token;
+
+    if (!userData || !token) {
+      console.error("❌ Invalid response structure:", data);
+      throw new Error(
+        "Respons server tidak valid - data pengguna tidak ditemukan",
+      );
+    }
+
+    console.log("✅ Login berhasil! User:", userData.email);
+    return { success: true, user: userData, token };
+  } catch (err) {
+    console.error("❌ Login error:", err);
+    throw new Error(err.message || "Login gagal, coba lagi");
   }
-  return response.json();
 };
 
-export const register = async () => {
-  const response = await fetch(API_ENDPOINTS.REGISTER, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-  });
-  if (!response.ok) {
-    throw new Error("Registration failed");
+export const register = async (email, password, name) => {
+  try {
+    const response = await fetch(API_ENDPOINTS.REGISTER, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ email, password, name }),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(
+        data.message || `Registrasi gagal dengan status ${response.status}`,
+      );
+    }
+
+    // Extract user and token from response
+    const userData = data.data?.user || data.user;
+    const token = data.data?.token || data.token;
+
+    if (!userData || !token) {
+      console.error("❌ Invalid response structure:", data);
+      throw new Error(
+        "Respons server tidak valid - data pengguna tidak ditemukan",
+      );
+    }
+
+    console.log("✅ Registrasi berhasil! User:", userData.email);
+    return { success: true, user: userData, token };
+  } catch (err) {
+    console.error("❌ Registration error:", err);
+    throw new Error(err.message || "Registrasi gagal, coba lagi");
   }
-  return response.json();
 };
 
 export const getUser = async (token) => {
-  const response = await fetch(API_ENDPOINTS.GET_USER, {
+  const response = await fetch(API_ENDPOINTS.PROFILE, {
     method: "GET",
     headers: {
       Authorization: `Bearer ${token}`,
     },
   });
   if (!response.ok) {
-    throw new Error("Failed to fetch user data");
+    throw new Error("Gagal mengambil data user");
   }
   return response.json();
 };
 
-// Enhanced Google login with better error handling
-export const loginWithGoogle = async () => {
+export const verifyToken = async (token) => {
   try {
-    console.log("🔵 [FRONTEND] Starting Google sign-in...");
-
-    // Get idToken from Firebase
-    const idToken = await signInWithGoogleAndGetIdToken();
-
-    if (!idToken) {
-      throw new Error("Failed to get Firebase token");
-    }
-
-    console.log("✅ [FRONTEND] Firebase token received");
-    console.log("🔵 [FRONTEND] Sending to backend...");
-
-    // Send to backend
-    const res = await fetch(`${BASE_URL}/auth/google`, {
-      method: "POST",
+    const response = await fetch(API_ENDPOINTS.VERIFY_TOKEN, {
+      method: "GET",
       headers: {
+        Authorization: `Bearer ${token}`,
         "Content-Type": "application/json",
       },
+    });
+
+    if (!response.ok) {
+      throw new Error("Invalid token");
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (err) {
+    console.error("❌ Token verification error:", err);
+    throw err;
+  }
+};
+
+// Fetch user profile
+export const getUserProfile = async (token) => {
+  try {
+    const response = await fetch(API_ENDPOINTS.PROFILE, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error("Failed to fetch profile");
+    }
+
+    const data = await response.json();
+    const userData = data.user || data.data?.user;
+
+    console.log("✅ User profile fetched:", userData?.email);
+    return userData;
+  } catch (err) {
+    console.error("❌ Failed to fetch user profile:", err);
+    throw err;
+  }
+};
+
+export const loginWithGoogle = async () => {
+  try {
+    // Get ID token dari Google popup
+    const idToken = await loginWithGooglePopup();
+
+    if (!idToken) {
+      throw new Error("Token tidak diperoleh dari Google");
+    }
+
+    console.log("✅ Google authentication berhasil, token diperoleh");
+
+    // Kirim token ke backend untuk verify dan create/update user
+    const res = await fetch(API_ENDPOINTS.LOGIN_GOOGLE, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ idToken }),
     });
 
-    console.log("📥 [FRONTEND] Backend response status:", res.status);
-
-    // Parse response
     const data = await res.json();
+    console.log("📦 Login response dari backend:", data);
 
-    console.log("📦 [FRONTEND] Backend response data:", data);
-
-    // Check if request was successful
     if (!res.ok) {
-      throw new Error(data.message || `Server error: ${res.status}`);
+      throw new Error(
+        data.message || `Login gagal dengan status ${res.status}`,
+      );
     }
 
-    // Validate response structure
-    if (!data.success) {
-      throw new Error(data.message || "Login failed");
-    }
-
-    // Check if we have user and token
+    // Extract user and token from response
     const userData = data.data?.user || data.user;
     const token = data.data?.token || data.token;
 
     if (!userData || !token) {
-      console.error("❌ [FRONTEND] Invalid response structure:", data);
-      throw new Error("Invalid response from server - missing user or token");
+      console.error("❌ Invalid response structure:", data);
+      throw new Error(
+        "Respons server tidak valid - data pengguna tidak ditemukan",
+      );
     }
 
-    console.log("✅ [FRONTEND] Login successful:", userData.email);
-
-    return {
-      success: true,
-      user: userData,
-      token: token,
-      message: data.message || "Login successful",
-    };
+    console.log("✅ Login berhasil! User:", userData.email);
+    return { success: true, user: userData, token };
   } catch (err) {
-    console.error("❌ [FRONTEND] Login error:", err);
+    console.error("❌ Login error:", err);
+    throw new Error(err.message || "Login gagal, coba lagi");
+  }
+};
 
-    // Provide more helpful error messages
-    if (err.message.includes("popup")) {
-      throw new Error("Popup diblokir. Mohon izinkan popup untuk login.");
-    } else if (
-      err.message.includes("network") ||
-      err.message.includes("fetch")
-    ) {
-      throw new Error("Koneksi gagal. Periksa koneksi internet Anda.");
-    } else if (err.message.includes("Firebase")) {
-      throw new Error("Autentikasi Firebase gagal. Coba lagi.");
+/**
+ * Get user's analysis history
+ */
+export const getAnalyses = async (token, params = {}) => {
+  try {
+    const { limit = 10, skip = 0 } = params;
+    const queryParams = new URLSearchParams({ limit, skip });
+
+    const response = await fetch(`${API_ENDPOINTS.ANALYSES}?${queryParams}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error("Failed to fetch analyses");
     }
 
+    const data = await response.json();
+    return data.data;
+  } catch (err) {
+    console.error("❌ Failed to fetch analyses:", err);
+    throw err;
+  }
+};
+
+/**
+ * Get dashboard statistics
+ */
+export const getDashboardStats = async (token) => {
+  try {
+    const response = await fetch(API_ENDPOINTS.DASHBOARD_STATS, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error("Failed to fetch dashboard stats");
+    }
+
+    const data = await response.json();
+    return data.data;
+  } catch (err) {
+    console.error("❌ Failed to fetch dashboard stats:", err);
+    throw err;
+  }
+};
+
+/**
+ * Get dashboard trends for chart
+ */
+export const getDashboardTrends = async (token, period = "7d") => {
+  try {
+    const response = await fetch(
+      `${API_ENDPOINTS.DASHBOARD_TRENDS}?period=${period}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      },
+    );
+
+    if (!response.ok) {
+      throw new Error("Failed to fetch dashboard trends");
+    }
+
+    const data = await response.json();
+    return data.data;
+  } catch (err) {
+    console.error("❌ Failed to fetch dashboard trends:", err);
+    throw err;
+  }
+};
+
+/**
+ * Analyze image for disease detection
+ */
+export const analyzeImage = async (token, imageBase64, notes = null) => {
+  try {
+    const response = await fetch(API_ENDPOINTS.ANALYZE_IMAGE, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        imageBase64,
+        notes,
+      }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || "Failed to analyze image");
+    }
+
+    const data = await response.json();
+    return data.data;
+  } catch (err) {
+    console.error("❌ Failed to analyze image:", err);
+    throw err;
+  }
+};
+
+/**
+ * Get all diseases
+ */
+export const getDiseases = async (filters = {}) => {
+  try {
+    const params = new URLSearchParams(filters);
+    const response = await fetch(`${API_ENDPOINTS.DISEASES}?${params}`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error("Failed to fetch diseases");
+    }
+
+    const data = await response.json();
+    return data.data;
+  } catch (err) {
+    console.error("❌ Failed to fetch diseases:", err);
     throw err;
   }
 };

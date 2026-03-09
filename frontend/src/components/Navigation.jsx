@@ -49,13 +49,9 @@ export default function Navigation({
           aria-label="Go to home"
         >
           <div className="">
-            <img
-              src="/pisang.jpg"
-              alt="pisang"
-              className="w-10 h-10 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center"
-            />
+         
           </div>
-          <span className="font-bold text-lg text-gray-800">BananaAI</span>
+          <span className="font-bold text-lg text-gray-800 flex"><p className="text-green-500">Banana</p>Vision</span>
         </div>
         <div className="flex items-center gap-2">
           {user ? (
@@ -82,13 +78,9 @@ export default function Navigation({
               onClick={() => handleNav("home")}
             >
               <div className="">
-                <img
-                  src="/pisang.jpg"
-                  alt="pisang"
-                  className="w-10 h-10 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center"
-                />
+      
               </div>
-              <span className="font-bold text-xl text-gray-800">BananaAI</span>
+              <span className="font-bold text-xl text-gray-800 flex "><p className="text-green-500">Banana</p>Vision</span>
             </div>
 
             <nav className="flex items-center gap-3">
@@ -189,14 +181,10 @@ export default function Navigation({
               <div className="flex items-center justify-between mb-8">
                 <div className="flex items-center gap-2">
                   <div className="">
-                    <img
-                      src="/pisang.jpg"
-                      alt="pisang"
-                      className="w-10 h-10 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center"
-                    />
+
                   </div>
-                  <span className="font-bold text-xl text-gray-800">
-                    BananaAI
+                  <span className="font-bold text-xl text-gray-800 flex">
+                    <p className="text-green-500">Banana</p>Vision
                   </span>
                 </div>
                 <button onClick={() => setSidebarOpen(false)}>

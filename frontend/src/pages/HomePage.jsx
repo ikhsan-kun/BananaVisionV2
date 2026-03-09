@@ -37,7 +37,7 @@ export default function HomePage() {
                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-500 opacity-75"></span>
                     <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
                   </span>
-                  AI-Powered Crop Analysis v2.0 Live
+                  AI-Powered Crop Analysis
                 </div>
 
                 <h1 className="text-5xl lg:text-6xl font-black leading-tight tracking-tight text-gray-900">
@@ -48,9 +48,7 @@ export default function HomePage() {
                 </h1>
 
                 <p className="text-lg text-gray-600 leading-relaxed max-w-lg">
-                  Instantly detect banana plant diseases using advanced machine
-                  learning. Upload a photo and get actionable treatment advice
-                  in seconds.
+                  deteksi penyakit tanaman pisang dengan akurasi tinggi menggunakan teknologi AI terbaru. Cukup dengan foto daun yang terinfeksi, dapatkan diagnosis instan dan rekomendasi perawatan yang tepat untuk menyelamatkan panen Anda.
                 </p>
 
                 <div className="flex flex-wrap gap-4 pt-2">
@@ -58,13 +56,7 @@ export default function HomePage() {
                     onClick={() => setNavigate("/analyze")}
                     className="btn-primary"
                   >
-                    Start Analysis
-                  </button>
-                  <button
-                    onClick={() => setNavigate("/demo")}
-                    className="btn-secondary"
-                  >
-                    View Demo
+                    Mulai Analisis
                   </button>
                 </div>
               </div>
@@ -125,21 +117,18 @@ export default function HomePage() {
                   Model Accuracy
                 </p>
                 <div className="mt-2 flex items-baseline gap-2">
-                  <span className="text-4xl font-bold text-gray-900">98%</span>
-                  <span className="text-sm font-medium text-green-600">
-                    ↑ 2.4%
-                  </span>
+                  <span className="text-4xl font-bold text-gray-900">93% - 97%</span>
                 </div>
               </div>
 
               <div className="flex flex-col items-center md:items-start px-4 pt-8 md:pt-0">
                 <p className="text-sm font-medium text-gray-600 uppercase tracking-wider">
-                  Scans Completed
+                  deseases detected
                 </p>
                 <div className="mt-2 flex items-baseline gap-2">
-                  <span className="text-4xl font-bold text-gray-900">50k+</span>
+                  <span className="text-4xl font-bold text-gray-900">8+</span>
                   <span className="text-sm font-medium text-gray-600">
-                    Globally
+                    Different Type
                   </span>
                 </div>
               </div>
@@ -165,16 +154,12 @@ export default function HomePage() {
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
               <div className="max-w-2xl">
                 <h2 className="text-3xl md:text-4xl font-black tracking-tight text-gray-900 mb-4">
-                  Why Choose BananaVision?
+                  Mengapa Memilih BananaVision?
                 </h2>
                 <p className="text-lg text-gray-600">
-                  Leveraging cutting-edge AI to provide farmers with instant,
-                  reliable crop health insights that save time and resources.
+                  BananaVision menggunakan teknologi AI terdepan untuk memberikan wawasan kesehatan tanaman yang instan dan andal, yang menghemat waktu dan sumber daya petani.
                 </p>
               </div>
-              <button className="text-green-600 font-bold hover:text-green-700 flex items-center gap-1 transition-colors">
-                View all features <ChevronRight className="w-4 h-4" />
-              </button>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -196,11 +181,10 @@ export default function HomePage() {
                   </svg>
                 </div>
                 <h3 className="text-xl font-bold text-gray-900 mb-2">
-                  Real-time Detection
+                  Deteksi instan
                 </h3>
                 <p className="text-gray-600">
-                  Get results in seconds, not days. Our optimized edge-computing
-                  model processes images instantly even with low connectivity.
+                  Dapatkan hasil dalam hitungan detik, bukan hari. Model edge-computing yang dioptimalkan memproses gambar secara instan bahkan dengan konektivitas yang rendah.
                 </p>
               </div>
 
@@ -222,12 +206,10 @@ export default function HomePage() {
                   </svg>
                 </div>
                 <h3 className="text-xl font-bold text-gray-900 mb-2">
-                  Expert Treatment Plans
+                  Rekomendasi Perawatan
                 </h3>
                 <p className="text-gray-600">
-                  Receive actionable advice tailored to specific diseases. We
-                  partner with agronomists to suggest chemical and organic
-                  remedies.
+                  Tidak hanya diagnosis, tetapi juga solusi. Dapatkan rekomendasi perawatan yang disesuaikan untuk setiap penyakit, membantu Anda menyelamatkan tanaman dan mencegah penyebaran.
                 </p>
               </div>
 
@@ -237,11 +219,11 @@ export default function HomePage() {
                   <History className="w-6 h-6" />
                 </div>
                 <h3 className="text-xl font-bold text-gray-900 mb-2">
-                  Historical Tracking
+                  Pelacakan Historis
                 </h3>
                 <p className="text-gray-600">
-                  Monitor crop health trends over time. Identify outbreaks early
-                  by tracking locations of diseased plants on your farm map.
+                  Monitor tren kesehatan tanaman over time. Identifikasi awal
+                  dengan melacak tanaman yang terkena penyakit pertanian Anda.
                 </p>
               </div>
             </div>
@@ -253,11 +235,10 @@ export default function HomePage() {
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div className="text-center max-w-3xl mx-auto mb-16">
               <h2 className="text-3xl md:text-4xl font-black tracking-tight text-gray-900 mb-4">
-                Simple Steps to Healthy Crops
+                 Langkah Mudah untuk Deteksi Penyakit Tanaman Pisang dengan BananaVision
               </h2>
               <p className="text-lg text-gray-600">
-                No specialized hardware needed. Just your smartphone and our
-                intelligent app.
+                Tidak perlu perangkat khusus. Cukup dengan smartphone Anda dan aplikasi cerdas kami.
               </p>
             </div>
 
@@ -271,11 +252,10 @@ export default function HomePage() {
                   <Camera className="w-10 h-10 text-green-600" />
                 </div>
                 <h3 className="text-xl font-bold mb-2 text-gray-900">
-                  1. Snap a Photo
+                  1. Ambil Foto Daun Pisang
                 </h3>
                 <p className="text-gray-600 text-sm px-4">
-                  Take a clear picture of the affected leaf or fruit using your
-                  phone camera.
+                  Cukup ambil foto daun pisang yang terinfeksi menggunakan kamera smartphone Anda. Pastikan pencahayaan cukup untuk hasil terbaik.
                 </p>
               </div>
 
@@ -285,11 +265,11 @@ export default function HomePage() {
                   <Activity className="w-10 h-10 text-green-600" />
                 </div>
                 <h3 className="text-xl font-bold mb-2 text-gray-900">
-                  2. AI Analysis
+                  2. AI Menganalisis Gambar
                 </h3>
                 <p className="text-gray-600 text-sm px-4">
-                  Our algorithms analyze the visual patterns to identify
-                  pathogens with 98% accuracy.
+                  Algoritma kami menganalisis pola visual untuk mengidentifikasi
+                  patogen dengan akurasi 93% - 97%.
                 </p>
               </div>
 
@@ -311,11 +291,10 @@ export default function HomePage() {
                   </svg>
                 </div>
                 <h3 className="text-xl font-bold mb-2 text-gray-900">
-                  3. Get Treatment
+                  3. Dapatkan Pengobatan
                 </h3>
                 <p className="text-gray-600 text-sm px-4">
-                  Receive immediate, actionable care instructions to save your
-                  plant and prevent spread.
+                  Dapatkan instruksi perawatan yang segera dan dapat diimplementasikan untuk menyelamatkan tanaman Anda dan mencegah penyebaran penyakit.
                 </p>
               </div>
             </div>
@@ -393,11 +372,10 @@ export default function HomePage() {
 
           <div className="mx-auto max-w-4xl px-4 text-center relative z-10">
             <h2 className="text-4xl md:text-5xl font-black mb-6">
-              Ready to Protect Your Harvest?
+              Siap Melindungi Tanaman Anda dengan BananaVision?
             </h2>
             <p className="text-xl text-gray-300 mb-10">
-              Join 50,000+ farmers using BananaVision to secure their future.
-              Free to start, easy to scale.
+              Bergabunglah dengan BananaVision untuk mendapatkan akses instan ke teknologi deteksi penyakit tanaman pisang berbasis AI yang revolusioner.
             </p>
             <button
               onClick={() =>
@@ -405,10 +383,10 @@ export default function HomePage() {
               }
               className="h-14 px-8 rounded-lg bg-green-500 text-gray-900 text-lg font-bold tracking-wide transition-transform hover:scale-105 shadow-xl shadow-green-500/20"
             >
-              Analyze Your First Plant Now
+              Analisis Sekarang
             </button>
             <p className="mt-4 text-sm text-gray-400">
-              No credit card required for basic plan.
+              gratis untuk digunakan, tanpa biaya.
             </p>
           </div>
         </section>

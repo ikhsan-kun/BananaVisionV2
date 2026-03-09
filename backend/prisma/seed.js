@@ -119,24 +119,24 @@ const diseases = [
 ];
 
 async function main() {
-  console.log("🌱 Starting disease seeding...");
+  console.log("Starting disease seeding...");
 
   try {
     // Delete existing diseases
     await prisma.disease.deleteMany({});
-    console.log("✅ Cleared existing diseases");
+    console.log("leared existing diseases");
 
     // Create new diseases
     for (const disease of diseases) {
       await prisma.disease.create({
         data: disease,
       });
-      console.log(`✅ Created disease: ${disease.name}`);
+      console.log(`Created disease: ${disease.name}`);
     }
 
-    console.log("✅ Disease seeding completed successfully!");
+    console.log("Disease seeding completed successfully!");
   } catch (error) {
-    console.error("❌ Seeding error:", error);
+    console.error("Seeding error:", error);
     process.exit(1);
   } finally {
     await prisma.$disconnect();

@@ -32,7 +32,7 @@ const OfflineIndicator = () => {
       ...styles.container,
       background: isOnline ? '#10b981' : '#ef4444'
     }}>
-      <span style={styles.icon}>{isOnline ? '✅' : '📡'}</span>
+      <span style={styles.icon}>{isOnline ? '' : ''}</span>
       <span style={styles.text}>
         {isOnline ? 'Kembali Online' : 'Mode Offline'}
       </span>

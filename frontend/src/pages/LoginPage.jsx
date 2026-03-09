@@ -88,18 +88,6 @@ export default function LoginPage({ handleLogin, setCurrentPage }) {
 
   return (
     <div className="relative flex min-h-screen w-full flex-col overflow-hidden bg-gray-50">
-      {/* Navbar */}
-      <header className="absolute top-0 left-0 w-full z-20 px-6 py-4 lg:px-10">
-        <div className="flex items-center gap-3">
-          <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-green-100 text-green-700">
-            <Leaf className="w-6 h-6" />
-          </div>
-          <span className="text-xl font-bold tracking-tight text-gray-900">
-            BananaVision
-          </span>
-        </div>
-      </header>
-
       {/* Main Content: Split Layout */}
       <main className="flex flex-1 flex-col lg:flex-row min-h-screen">
         {/* Left Side: Login Form */}

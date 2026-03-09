@@ -8,7 +8,7 @@ if (process.env.NODE_ENV === "development") {
 
 prisma
   .$connect()
-  .then(() => console.log("✅ Database connected"))
-  .catch((err) => console.error("❌ Database connection failed:", err));
+  .then(() => console.log("done: Database connected"))
+  .catch((err) => console.error("errr: Database connection failed:", err));
 
 module.exports = prisma;

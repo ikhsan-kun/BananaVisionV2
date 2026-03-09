@@ -107,7 +107,6 @@ model Statistic {
   year            Int
   month           Int
   
-  // Count
   detectionCount  Int      @default(0)
   
   createdAt       DateTime @default(now())
